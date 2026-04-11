@@ -2,8 +2,10 @@ package com.teriak.service;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.web.client.RestTemplateBuilder;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.client.RestTemplate;
 
 import java.time.Duration;
 import java.util.Map;
@@ -12,21 +14,23 @@ import java.util.Map;
 @Service
 public class AiAssistantService {
 
-    @Value("${langchain4j.ollama.base-url:http://localhost:11434}")
+    @Value("${ollama.base-url:http://localhost:11434}")
     private String ollamaBaseUrl;
 
-    @Value("${langchain4j.ollama.model-name:llama3}")
+    @Value("${ollama.model:llama3}")
     private String modelName;
 
-    private final WebClient webClient;
+    private final RestTemplate restTemplate;
 
-    public AiAssistantService(WebClient.Builder webClientBuilder) {
-        this.webClient = webClientBuilder.build();
+    public AiAssistantService(RestTemplateBuilder builder) {
+        this.restTemplate = builder
+                .setConnectTimeout(Duration.ofSeconds(5))
+                .setReadTimeout(Duration.ofSeconds(60))
+                .build();
     }
 
     public String chat(String userMessage, Map<String, Object> context) {
-        String systemPrompt = buildSystemPrompt(context);
-        String fullPrompt = systemPrompt + "\n\nQuestion: " + userMessage;
+        String fullPrompt = buildSystemPrompt(context) + "\n\nQuestion: " + userMessage;
 
         try {
             Map<String, Object> requestBody = Map.of(
@@ -36,16 +40,16 @@ public class AiAssistantService {
                 "options", Map.of("temperature", 0.3, "num_predict", 512)
             );
 
-            Map response = webClient.post()
-                .uri(ollamaBaseUrl + "/api/generate")
-                .bodyValue(requestBody)
-                .retrieve()
-                .bodyToMono(Map.class)
-                .timeout(Duration.ofSeconds(60))
-                .block();
+            @SuppressWarnings("rawtypes")
+            ResponseEntity<Map> response = restTemplate.postForEntity(
+                ollamaBaseUrl + "/api/generate",
+                requestBody,
+                Map.class
+            );
 
-            if (response != null && response.containsKey("response")) {
-                return (String) response.get("response");
+            if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
+                Object reply = response.getBody().get("response");
+                if (reply instanceof String s) return s;
             }
         } catch (Exception e) {
             log.warn("Ollama unavailable, using fallback: {}", e.getMessage());
@@ -54,7 +58,6 @@ public class AiAssistantService {
         return generateFallback(userMessage, context);
     }
 
-    @SuppressWarnings("unchecked")
     private String buildSystemPrompt(Map<String, Object> context) {
         StringBuilder sb = new StringBuilder();
         sb.append("Tu es l'assistant IA du logiciel Plan de Charge de Laboratoires Teriak. ");
@@ -63,10 +66,10 @@ public class AiAssistantService {
         sb.append("Contexte actuel:\n");
 
         if (context != null) {
-            Object overloaded = context.get("overloaded");
+            Object overloaded   = context.get("overloaded");
             Object nearCapacity = context.get("nearCapacity");
             Object worstAtelier = context.get("worstAtelier");
-            Object params = context.get("params");
+            Object params       = context.get("params");
 
             if (overloaded instanceof java.util.List<?> ol && !ol.isEmpty()) {
                 sb.append("- Ateliers en SURCHARGE: ").append(ol).append("\n");
@@ -87,10 +90,8 @@ public class AiAssistantService {
         return sb.toString();
     }
 
-    @SuppressWarnings("unchecked")
     private String generateFallback(String message, Map<String, Object> context) {
         String lower = message.toLowerCase();
-        Object params = context != null ? context.get("params") : null;
 
         if (lower.contains("suggestion") || lower.contains("optimis") || lower.contains("oui")) {
             return "Voici mes recommandations prioritaires :\n\n" +

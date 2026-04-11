@@ -5,7 +5,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
 public class TeriakApplication {
-    public static void main(String[] args) {
-        SpringApplication.run(TeriakApplication.class, args);
-    }
+  public static void main(String[] args) {
+    SpringApplication.run(TeriakApplication.class, args);
+  }
 }

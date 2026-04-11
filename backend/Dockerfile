@@ -1,16 +1,15 @@
 # --- Build Stage ---
-FROM eclipse-temurin:21-jdk-alpine AS build
+# Use the official Maven image — Maven is pre-installed, no wrapper needed
+FROM maven:3.9-eclipse-temurin-21-alpine AS build
 WORKDIR /app
 
-# Copy Maven wrapper and pom.xml first for dependency caching
+# Copy pom.xml first so dependency layer is cached independently of source
 COPY pom.xml .
-COPY .mvn .mvn
-COPY mvnw .
-RUN chmod +x mvnw && ./mvnw dependency:go-offline -B
+RUN mvn dependency:go-offline -B
 
 # Build the application
 COPY src ./src
-RUN ./mvnw package -DskipTests -B
+RUN mvn package -DskipTests -B
 
 # --- Runtime Stage ---
 FROM eclipse-temurin:21-jre-alpine AS runtime

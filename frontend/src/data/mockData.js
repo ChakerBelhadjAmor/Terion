@@ -98,14 +98,24 @@ export const PRODUCTS = [
 
 export const DEFAULT_PARAMS = {
   weeks: 4,
-  daysPerWeek: 5,
-  shiftsPerDay: 2,
-  hoursPerShift: 8,
-  efficiency: 85,
 };
 
+// Per-atelier params — each atelier can differ
+export const DEFAULT_ATELIER_PARAMS = Object.fromEntries(
+  ATELIERS.map(a => [a, { daysPerWeek: 5, shiftsPerDay: 2, hoursPerShift: 8, efficiency: 85 }])
+);
+
+export function computeCapacityForAtelier(globalParams, atelierOverride = {}) {
+  const daysPerWeek = atelierOverride.daysPerWeek ?? 5;
+  const shiftsPerDay = atelierOverride.shiftsPerDay ?? 2;
+  const hoursPerShift = atelierOverride.hoursPerShift ?? 8;
+  const efficiency = atelierOverride.efficiency ?? 85;
+  return globalParams.weeks * daysPerWeek * shiftsPerDay * hoursPerShift * (efficiency / 100);
+}
+
+// Keep backward compat for any code still using computeCapacity
 export function computeCapacity(params) {
-  const { weeks, daysPerWeek, shiftsPerDay, hoursPerShift, efficiency } = params;
+  const { weeks, daysPerWeek = 5, shiftsPerDay = 2, hoursPerShift = 8, efficiency = 85 } = params;
   return weeks * daysPerWeek * shiftsPerDay * hoursPerShift * (efficiency / 100);
 }
 
@@ -120,16 +130,19 @@ export function computeLoads(products = PRODUCTS) {
   return loads;
 }
 
-export function getAtelierUtilization(products, params) {
-  const capacity = computeCapacity(params);
+export function getAtelierUtilization(products, globalParams, atelierParams = DEFAULT_ATELIER_PARAMS) {
   const loads = computeLoads(products);
-  return ATELIERS.map(atelier => ({
-    atelier,
-    name: ATELIER_NAMES[atelier],
-    load: Math.round(loads[atelier] * 10) / 10,
-    capacity: Math.round(capacity * 10) / 10,
-    utilization: Math.round((loads[atelier] / capacity) * 1000) / 10,
-  }));
+  return ATELIERS.map(atelier => {
+    const ap = atelierParams[atelier] || DEFAULT_ATELIER_PARAMS[atelier];
+    const capacity = computeCapacityForAtelier(globalParams, ap);
+    return {
+      atelier,
+      name: ATELIER_NAMES[atelier],
+      load: Math.round(loads[atelier] * 10) / 10,
+      capacity: Math.round(capacity * 10) / 10,
+      utilization: capacity > 0 ? Math.round((loads[atelier] / capacity) * 1000) / 10 : 0,
+    };
+  });
 }
 
 // Gantt data: lot schedule across weeks

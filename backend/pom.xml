@@ -21,7 +21,6 @@
   <properties>
     <java.version>21</java.version>
     <timefold.version>1.11.0</timefold.version>
-    <langchain4j.version>0.30.0</langchain4j.version>
   </properties>
 
   <dependencies>
@@ -47,13 +46,6 @@
       <groupId>ai.timefold.solver</groupId>
       <artifactId>timefold-solver-spring-boot-starter</artifactId>
       <version>${timefold.version}</version>
-    </dependency>
-
-    <!-- LangChain4j with Ollama -->
-    <dependency>
-      <groupId>dev.langchain4j</groupId>
-      <artifactId>langchain4j-ollama-spring-boot-starter</artifactId>
-      <version>${langchain4j.version}</version>
     </dependency>
 
     <!-- Lombok -->

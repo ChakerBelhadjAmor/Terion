@@ -1,5 +1,3 @@
-version: "3.9"
-
 services:
   # ── Ollama (Local LLM — Offline First) ──────────────────────────────────
   ollama:
@@ -20,23 +18,27 @@ services:
     #         - driver: nvidia
     #           count: 1
     #           capabilities: [gpu]
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:11434/api/tags"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
-      start_period: 60s
 
   # ── Pull Llama 3 model on first start ────────────────────────────────────
+  # Retries until Ollama is ready — no healthcheck dependency needed
   ollama-pull:
     image: ollama/ollama:latest
     container_name: teriak-ollama-pull
     depends_on:
-      ollama:
-        condition: service_healthy
-    entrypoint: ["ollama", "pull", "llama3"]
+      - ollama
+    entrypoint:
+      - /bin/sh
+      - -c
+      - |
+        echo "Waiting for Ollama to be ready..."
+        until curl -sf http://ollama:11434/api/tags > /dev/null 2>&1; do
+          sleep 3
+        done
+        echo "Ollama is ready. Pulling llama3..."
+        ollama pull llama3
+        echo "Done."
     environment:
-      - OLLAMA_HOST=ollama:11434
+      - OLLAMA_HOST=http://ollama:11434
     restart: "no"
 
   # ── Spring Boot Backend ───────────────────────────────────────────────────
@@ -52,16 +54,15 @@ services:
       - SPRING_PROFILES_ACTIVE=docker
       - OLLAMA_BASE_URL=http://ollama:11434
       - OLLAMA_MODEL=llama3
-      - CORS_ORIGINS=http://localhost:5173,http://localhost:80,http://frontend
+      - CORS_ORIGINS=http://localhost:5173,http://localhost:3000,http://frontend
       - SERVER_PORT=8080
-    depends_on:
-      ollama:
-        condition: service_healthy
+    # Backend does NOT depend on Ollama health — the AI assistant has a local fallback
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/api/pdp/health"]
-      interval: 20s
+      # eclipse-temurin Alpine image has wget but not curl
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/api/pdp/health > /dev/null"]
+      interval: 15s
       timeout: 10s
-      retries: 5
+      retries: 10
       start_period: 60s
 
   # ── React Frontend ────────────────────────────────────────────────────────

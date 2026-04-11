@@ -1,16 +1,17 @@
 import { createContext, useContext, useState } from 'react';
-import { PRODUCTS, DEFAULT_PARAMS, getAtelierUtilization } from '../data/mockData';
+import { PRODUCTS, DEFAULT_PARAMS, DEFAULT_ATELIER_PARAMS, getAtelierUtilization } from '../data/mockData';
 
 const AppContext = createContext(null);
 
 export function AppProvider({ children }) {
   const [products, setProducts] = useState(PRODUCTS);
   const [params, setParams] = useState(DEFAULT_PARAMS);
+  const [atelierParams, setAtelierParams] = useState(DEFAULT_ATELIER_PARAMS);
   const [pdpLoaded, setPdpLoaded] = useState(false);
   const [fileName, setFileName] = useState(null);
   const [aiMessages, setAiMessages] = useState([]);
 
-  const utilization = getAtelierUtilization(products, params);
+  const utilization = getAtelierUtilization(products, params, atelierParams);
   const overloaded = utilization.filter(u => u.utilization > 100);
   const nearCapacity = utilization.filter(u => u.utilization >= 80 && u.utilization <= 100);
   const healthy = utilization.filter(u => u.utilization < 80);
@@ -24,6 +25,22 @@ export function AppProvider({ children }) {
     setPdpLoaded(true);
     setFileName('PDP_Teriak_2024_Q2.xlsx');
   };
+
+  const resetPdp = () => {
+    setProducts(PRODUCTS);
+    setPdpLoaded(false);
+    setFileName(null);
+    setAiMessages([]);
+  };
+
+  const updateAtelierParam = (atelier, key, value) => {
+    setAtelierParams(prev => ({
+      ...prev,
+      [atelier]: { ...prev[atelier], [key]: value },
+    }));
+  };
+
+  const resetAtelierParams = () => setAtelierParams(DEFAULT_ATELIER_PARAMS);
 
   const loadExcelData = (parsedProducts, name) => {
     setProducts(parsedProducts);
@@ -53,7 +70,11 @@ export function AppProvider({ children }) {
       aiMessages,
       loadDemoData,
       loadExcelData,
+      resetPdp,
       updateParam,
+      atelierParams,
+      updateAtelierParam,
+      resetAtelierParams,
       addAiMessage,
     }}>
       {children}

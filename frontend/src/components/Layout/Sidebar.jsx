@@ -1,4 +1,4 @@
-import { NavLink } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
   LayoutDashboard,
@@ -7,6 +7,7 @@ import {
   Settings,
   Activity,
   ChevronRight,
+  UploadCloud,
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 
@@ -18,7 +19,8 @@ const navItems = [
 ];
 
 export default function Sidebar() {
-  const { healthScore, overloaded, pdpLoaded, fileName } = useApp();
+  const { healthScore, overloaded, pdpLoaded, fileName, resetPdp } = useApp();
+  const navigate = useNavigate();
 
   const healthColor = {
     excellent: 'text-green-400',
@@ -47,26 +49,40 @@ export default function Sidebar() {
         </div>
       </div>
 
-      {/* PDP Status */}
-      {pdpLoaded && (
-        <motion.div
-          initial={{ opacity: 0, y: -8 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mx-4 mt-4 px-3 py-2.5 bg-white/10 rounded-xl border border-white/10"
-        >
-          <p className="text-white/50 text-xs mb-1">PDP chargé</p>
-          <p className="text-white text-xs font-medium truncate">{fileName}</p>
-          <div className="flex items-center gap-1.5 mt-1.5">
-            <span className={`w-2 h-2 rounded-full ${healthColor.replace('text-', 'bg-')}`} />
-            <span className={`text-xs font-semibold ${healthColor}`}>{healthLabel}</span>
-            {overloaded.length > 0 && (
-              <span className="text-xs text-white/40 ml-auto">
-                {overloaded.length} surcharge{overloaded.length > 1 ? 's' : ''}
-              </span>
-            )}
+      {/* PDP Status + Changer button */}
+      <div className="mx-4 mt-4 space-y-2">
+        {pdpLoaded ? (
+          <motion.div
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="px-3 py-2.5 bg-white/10 rounded-xl border border-white/10"
+          >
+            <p className="text-white/50 text-xs mb-1">PDP chargé</p>
+            <p className="text-white text-xs font-medium truncate">{fileName}</p>
+            <div className="flex items-center gap-1.5 mt-1.5">
+              <span className={`w-2 h-2 rounded-full ${healthColor.replace('text-', 'bg-')}`} />
+              <span className={`text-xs font-semibold ${healthColor}`}>{healthLabel}</span>
+              {overloaded.length > 0 && (
+                <span className="text-xs text-white/40 ml-auto">
+                  {overloaded.length} surcharge{overloaded.length > 1 ? 's' : ''}
+                </span>
+              )}
+            </div>
+          </motion.div>
+        ) : (
+          <div className="px-3 py-2 bg-white/5 rounded-xl border border-white/10">
+            <p className="text-white/40 text-xs">Aucun PDP chargé</p>
           </div>
-        </motion.div>
-      )}
+        )}
+
+        <button
+          onClick={() => { resetPdp(); navigate('/'); }}
+          className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-xl bg-primary/20 hover:bg-primary/40 border border-primary/30 text-primary text-xs font-semibold transition-all"
+        >
+          <UploadCloud className="w-4 h-4" />
+          {pdpLoaded ? 'Changer de fichier' : 'Charger un PDP'}
+        </button>
+      </div>
 
       {/* Navigation */}
       <nav className="flex-1 px-3 mt-6 space-y-1">
