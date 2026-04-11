@@ -1,0 +1,40 @@
+# Maven build output
+target/
+!.mvn/wrapper/maven-wrapper.jar
+
+# Maven wrapper jar (download on demand, don't commit the binary)
+.mvn/wrapper/maven-wrapper.jar
+
+# Compiled classes
+*.class
+
+# Package files
+*.jar
+*.war
+*.ear
+*.zip
+*.tar.gz
+
+# Spring Boot devtools
+.springBeans
+
+# Local env
+.env
+*.env
+
+# Log files
+*.log
+logs/
+
+# IntelliJ IDEA
+.idea/
+*.iml
+
+# Eclipse
+.project
+.classpath
+.settings/
+bin/
+
+# OS
+.DS_Store

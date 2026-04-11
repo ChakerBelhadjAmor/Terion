@@ -1,0 +1,68 @@
+import { createContext, useContext, useState } from 'react';
+import { PRODUCTS, DEFAULT_PARAMS, getAtelierUtilization } from '../data/mockData';
+
+const AppContext = createContext(null);
+
+export function AppProvider({ children }) {
+  const [products, setProducts] = useState(PRODUCTS);
+  const [params, setParams] = useState(DEFAULT_PARAMS);
+  const [pdpLoaded, setPdpLoaded] = useState(false);
+  const [fileName, setFileName] = useState(null);
+  const [aiMessages, setAiMessages] = useState([]);
+
+  const utilization = getAtelierUtilization(products, params);
+  const overloaded = utilization.filter(u => u.utilization > 100);
+  const nearCapacity = utilization.filter(u => u.utilization >= 80 && u.utilization <= 100);
+  const healthy = utilization.filter(u => u.utilization < 80);
+
+  const healthScore = overloaded.length === 0
+    ? (nearCapacity.length === 0 ? 'excellent' : 'good')
+    : 'critical';
+
+  const loadDemoData = () => {
+    setProducts(PRODUCTS);
+    setPdpLoaded(true);
+    setFileName('PDP_Teriak_2024_Q2.xlsx');
+  };
+
+  const loadExcelData = (parsedProducts, name) => {
+    setProducts(parsedProducts);
+    setPdpLoaded(true);
+    setFileName(name);
+  };
+
+  const updateParam = (key, value) => {
+    setParams(prev => ({ ...prev, [key]: value }));
+  };
+
+  const addAiMessage = (msg) => {
+    setAiMessages(prev => [...prev, msg]);
+  };
+
+  return (
+    <AppContext.Provider value={{
+      products,
+      params,
+      utilization,
+      overloaded,
+      nearCapacity,
+      healthy,
+      healthScore,
+      pdpLoaded,
+      fileName,
+      aiMessages,
+      loadDemoData,
+      loadExcelData,
+      updateParam,
+      addAiMessage,
+    }}>
+      {children}
+    </AppContext.Provider>
+  );
+}
+
+export function useApp() {
+  const ctx = useContext(AppContext);
+  if (!ctx) throw new Error('useApp must be used within AppProvider');
+  return ctx;
+}

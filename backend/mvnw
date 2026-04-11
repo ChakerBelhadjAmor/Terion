@@ -1,0 +1,29 @@
+#!/bin/sh
+# Maven Wrapper Script
+# Based on https://github.com/takari/maven-wrapper
+
+if [ -z "$JAVA_HOME" ] ; then
+  JAVACMD=java
+else
+  JAVACMD="$JAVA_HOME/bin/java"
+fi
+
+BASEDIR=$(dirname "$0")
+DOWNLOAD_URL=$(grep "distributionUrl" "$BASEDIR/.mvn/wrapper/maven-wrapper.properties" | cut -d'=' -f2-)
+
+MAVEN_HOME="$HOME/.m2/wrapper/dists/apache-maven"
+mkdir -p "$MAVEN_HOME"
+
+MVN_BIN=$(find "$MAVEN_HOME" -name "mvn" -type f 2>/dev/null | head -1)
+
+if [ -z "$MVN_BIN" ]; then
+  echo "Downloading Maven from $DOWNLOAD_URL..."
+  TMPZIP="/tmp/maven-dist.zip"
+  curl -fsSL "$DOWNLOAD_URL" -o "$TMPZIP"
+  unzip -q "$TMPZIP" -d "$MAVEN_HOME"
+  rm "$TMPZIP"
+  MVN_BIN=$(find "$MAVEN_HOME" -name "mvn" -type f 2>/dev/null | head -1)
+fi
+
+chmod +x "$MVN_BIN"
+exec "$MVN_BIN" "$@"
