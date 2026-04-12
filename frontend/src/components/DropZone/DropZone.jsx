@@ -1,32 +1,47 @@
 import { useCallback, useState } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Upload, FileSpreadsheet, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
-import { parseExcelFile } from '../../utils/excelParser';
+import { Upload, FileSpreadsheet, CheckCircle, AlertCircle, Loader2, X } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
+import { uploadPdp } from '../../utils/api';
 
 export default function DropZone({ onSuccess }) {
-  const { loadExcelData } = useApp();
-  const [status, setStatus] = useState('idle'); // idle | loading | success | error
+  const { loadPlanFromBackend } = useApp();
+  const [status, setStatus] = useState('idle'); // idle | naming | uploading | success | error
   const [errorMsg, setErrorMsg] = useState('');
+  const [pendingFile, setPendingFile] = useState(null);
+  const [scenarioName, setScenarioName] = useState('');
 
-  const onDrop = useCallback(async (accepted) => {
+  const onDrop = useCallback((accepted) => {
     if (!accepted.length) return;
     const file = accepted[0];
-    setStatus('loading');
+    setPendingFile(file);
+    // Default name = filename without extension
+    setScenarioName(file.name.replace(/\.(xlsx|xls)$/i, ''));
+    setStatus('naming');
+    setErrorMsg('');
+  }, []);
+
+  const submit = useCallback(async () => {
+    if (!pendingFile || !scenarioName.trim()) return;
+    setStatus('uploading');
     setErrorMsg('');
     try {
-      const products = await parseExcelFile(file);
-      loadExcelData(products, file.name);
+      const saved = await uploadPdp(pendingFile, scenarioName.trim());
+      loadPlanFromBackend(saved);
       setStatus('success');
-      setTimeout(() => {
-        if (onSuccess) onSuccess();
-      }, 1200);
+      setTimeout(() => { if (onSuccess) onSuccess(); }, 1000);
     } catch (err) {
       setStatus('error');
-      setErrorMsg(err.message);
+      setErrorMsg(err.message || 'Erreur lors de l\'envoi.');
     }
-  }, [loadExcelData, onSuccess]);
+  }, [pendingFile, scenarioName, loadPlanFromBackend, onSuccess]);
+
+  const cancelNaming = () => {
+    setStatus('idle');
+    setPendingFile(null);
+    setScenarioName('');
+  };
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
@@ -35,7 +50,9 @@ export default function DropZone({ onSuccess }) {
       'application/vnd.ms-excel': ['.xls'],
     },
     maxFiles: 1,
-    disabled: status === 'loading',
+    disabled: status === 'uploading' || status === 'naming',
+    noClick: status === 'naming',
+    noKeyboard: status === 'naming',
   });
 
   return (
@@ -56,41 +73,87 @@ export default function DropZone({ onSuccess }) {
       <input {...getInputProps()} />
 
       <AnimatePresence mode="wait">
-        {status === 'loading' && (
+        {status === 'uploading' && (
           <motion.div key="loading" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex flex-col items-center gap-4">
             <div className="w-20 h-20 rounded-2xl bg-primary/10 flex items-center justify-center">
               <Loader2 className="w-10 h-10 text-primary animate-spin" />
             </div>
-            <p className="text-gray-600 font-medium">Analyse du fichier en cours…</p>
+            <p className="text-gray-600 font-medium">Envoi et sauvegarde du scénario…</p>
           </motion.div>
         )}
+
+        {status === 'naming' && (
+          <motion.div
+            key="naming"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
+            className="flex flex-col items-center gap-4 w-full"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="w-20 h-20 rounded-2xl bg-primary/10 flex items-center justify-center">
+              <FileSpreadsheet className="w-10 h-10 text-primary" />
+            </div>
+            <div className="w-full max-w-sm">
+              <p className="text-gray-800 font-semibold text-lg mb-1">Nommer le scénario</p>
+              <p className="text-gray-400 text-xs mb-3 truncate">{pendingFile?.name}</p>
+              <input
+                type="text"
+                value={scenarioName}
+                onChange={(e) => setScenarioName(e.target.value)}
+                onKeyDown={(e) => { if (e.key === 'Enter') submit(); }}
+                placeholder="ex: Draft 1 - High Priority"
+                autoFocus
+                className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none text-sm"
+              />
+              <div className="flex gap-2 mt-3">
+                <button
+                  onClick={cancelNaming}
+                  className="flex-1 px-4 py-2 rounded-xl border border-gray-200 text-gray-600 hover:bg-gray-50 text-sm font-medium"
+                >
+                  Annuler
+                </button>
+                <button
+                  onClick={submit}
+                  disabled={!scenarioName.trim()}
+                  className="flex-1 px-4 py-2 rounded-xl bg-primary text-white hover:bg-primary/90 disabled:opacity-40 text-sm font-semibold"
+                >
+                  Enregistrer
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        )}
+
         {status === 'success' && (
           <motion.div key="success" initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }} className="flex flex-col items-center gap-4">
             <div className="w-20 h-20 rounded-2xl bg-green-100 flex items-center justify-center">
               <CheckCircle className="w-10 h-10 text-green-500" />
             </div>
-            <p className="text-green-700 font-semibold text-lg">PDP chargé avec succès !</p>
+            <p className="text-green-700 font-semibold text-lg">Scénario enregistré !</p>
             <p className="text-gray-500 text-sm">Redirection vers le tableau de bord…</p>
           </motion.div>
         )}
+
         {status === 'error' && (
           <motion.div key="error" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex flex-col items-center gap-4">
             <div className="w-20 h-20 rounded-2xl bg-red-100 flex items-center justify-center">
               <AlertCircle className="w-10 h-10 text-red-500" />
             </div>
             <div>
-              <p className="text-red-700 font-semibold">Erreur de lecture</p>
+              <p className="text-red-700 font-semibold">Erreur</p>
               <p className="text-red-500 text-sm mt-1">{errorMsg}</p>
             </div>
             <button
-              onClick={(e) => { e.stopPropagation(); setStatus('idle'); }}
+              onClick={(e) => { e.stopPropagation(); setStatus('idle'); setPendingFile(null); }}
               className="text-sm text-primary underline"
             >
               Réessayer
             </button>
           </motion.div>
         )}
-        {(status === 'idle') && (
+
+        {status === 'idle' && (
           <motion.div key="idle" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex flex-col items-center gap-5">
             <motion.div
               animate={isDragActive ? { y: -8 } : { y: 0 }}
@@ -99,11 +162,7 @@ export default function DropZone({ onSuccess }) {
                 isDragActive ? 'bg-primary text-white' : 'bg-gray-100 text-gray-400'
               }`}
             >
-              {isDragActive ? (
-                <FileSpreadsheet className="w-12 h-12" />
-              ) : (
-                <Upload className="w-12 h-12" />
-              )}
+              {isDragActive ? <FileSpreadsheet className="w-12 h-12" /> : <Upload className="w-12 h-12" />}
             </motion.div>
 
             <div>

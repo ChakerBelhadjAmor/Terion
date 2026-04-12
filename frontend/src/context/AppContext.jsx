@@ -1,4 +1,4 @@
-import { createContext, useContext, useState } from 'react';
+import { createContext, useContext, useMemo, useState } from 'react';
 import { PRODUCTS, DEFAULT_PARAMS, DEFAULT_ATELIER_PARAMS, getAtelierUtilization } from '../data/mockData';
 
 const AppContext = createContext(null);
@@ -9,16 +9,24 @@ export function AppProvider({ children }) {
   const [atelierParams, setAtelierParams] = useState(DEFAULT_ATELIER_PARAMS);
   const [pdpLoaded, setPdpLoaded] = useState(false);
   const [fileName, setFileName] = useState(null);
+  const [activePlanId, setActivePlanId] = useState(null);
+  const [activePlanName, setActivePlanName] = useState(null);
   const [aiMessages, setAiMessages] = useState([]);
 
-  const utilization = getAtelierUtilization(products, params, atelierParams);
-  const overloaded = utilization.filter(u => u.utilization > 100);
-  const nearCapacity = utilization.filter(u => u.utilization >= 80 && u.utilization <= 100);
-  const healthy = utilization.filter(u => u.utilization < 80);
+  const utilization = useMemo(
+    () => getAtelierUtilization(products, params, atelierParams),
+    [products, params, atelierParams]
+  );
 
-  const healthScore = overloaded.length === 0
-    ? (nearCapacity.length === 0 ? 'excellent' : 'good')
-    : 'critical';
+  const { overloaded, nearCapacity, healthy, healthScore } = useMemo(() => {
+    const over = utilization.filter(u => u.utilization > 100);
+    const near = utilization.filter(u => u.utilization >= 80 && u.utilization <= 100);
+    const ok = utilization.filter(u => u.utilization < 80);
+    const score = over.length === 0
+      ? (near.length === 0 ? 'excellent' : 'good')
+      : 'critical';
+    return { overloaded: over, nearCapacity: near, healthy: ok, healthScore: score };
+  }, [utilization]);
 
   const loadDemoData = () => {
     setProducts(PRODUCTS);
@@ -30,7 +38,26 @@ export function AppProvider({ children }) {
     setProducts(PRODUCTS);
     setPdpLoaded(false);
     setFileName(null);
+    setActivePlanId(null);
+    setActivePlanName(null);
     setAiMessages([]);
+  };
+
+  // Called by DropZone (after backend upload) and by ScenarioManager (after /api/pdp/{id} load)
+  const loadPlanFromBackend = (planDetail) => {
+    if (!planDetail || !Array.isArray(planDetail.products)) return;
+    // Re-hydrate products — ensure each has an id
+    const hydrated = planDetail.products.map((p, i) => ({
+      ...p,
+      id: p.id || i + 1,
+      processingTimes: p.processingTimes || {},
+      gamme: p.gamme || [],
+    }));
+    setProducts(hydrated);
+    setPdpLoaded(true);
+    setFileName(planDetail.filename || planDetail.name);
+    setActivePlanId(planDetail.id);
+    setActivePlanName(planDetail.name);
   };
 
   const updateAtelierParam = (atelier, key, value) => {
@@ -68,8 +95,11 @@ export function AppProvider({ children }) {
       pdpLoaded,
       fileName,
       aiMessages,
+      activePlanId,
+      activePlanName,
       loadDemoData,
       loadExcelData,
+      loadPlanFromBackend,
       resetPdp,
       updateParam,
       atelierParams,

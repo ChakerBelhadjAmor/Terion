@@ -34,6 +34,21 @@
       <artifactId>spring-boot-starter-validation</artifactId>
     </dependency>
 
+    <!-- JPA + SQLite persistence -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-data-jpa</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.xerial</groupId>
+      <artifactId>sqlite-jdbc</artifactId>
+      <version>3.45.1.0</version>
+    </dependency>
+    <dependency>
+      <groupId>org.hibernate.orm</groupId>
+      <artifactId>hibernate-community-dialects</artifactId>
+    </dependency>
+
     <!-- Apache POI for Excel -->
     <dependency>
       <groupId>org.apache.poi</groupId>

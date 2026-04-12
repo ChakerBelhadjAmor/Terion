@@ -159,10 +159,8 @@ export default function AIAssistant() {
   return (
     <>
       {/* Floating button */}
-      <motion.button
-        className="fixed bottom-6 right-6 z-50 w-14 h-14 bg-elm rounded-2xl shadow-xl flex items-center justify-center text-white hover:bg-elm-light transition-colors"
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
+      <button
+        className="fixed bottom-6 right-6 z-50 w-14 h-14 bg-elm rounded-2xl shadow-xl flex items-center justify-center text-white hover:bg-elm-light hover:scale-105 active:scale-95 transition-all"
         onClick={handleOpen}
         title="Assistant IA"
       >
@@ -170,7 +168,7 @@ export default function AIAssistant() {
         {pdpLoaded && !open && (
           <span className="absolute top-0 right-0 w-3 h-3 bg-accent rounded-full border-2 border-white animate-pulse" />
         )}
-      </motion.button>
+      </button>
 
       {/* Panel */}
       <AnimatePresence>

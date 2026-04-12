@@ -1,13 +1,9 @@
-import { useState } from 'react';
-import { motion } from 'framer-motion';
-import {
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine, Cell,
-} from 'recharts';
+import { useMemo, useState } from 'react';
 import {
   CheckCircle2, AlertTriangle, XCircle, Clock, TrendingUp, Layers, Eye
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
-import { ATELIER_NAMES, generateGanttData } from '../data/mockData';
+import { generateGanttData } from '../data/mockData';
 
 // --- Sub-components ---
 
@@ -49,11 +45,7 @@ function HealthScore() {
   const avgUtil = Math.round((totalLoad / totalCapacity) * 100);
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 16 }}
-      animate={{ opacity: 1, y: 0 }}
-      className={`${bg} border ${border} rounded-2xl p-6 flex items-start gap-4 shadow-card ring-2 ${ring} ring-offset-2`}
-    >
+    <div className={`${bg} border ${border} rounded-2xl p-6 flex items-start gap-4 shadow-card ring-2 ${ring} ring-offset-2`}>
       <div className={`w-14 h-14 rounded-2xl ${bg} border ${border} flex items-center justify-center`}>
         <Icon className={`w-7 h-7 ${color}`} />
       </div>
@@ -67,59 +59,53 @@ function HealthScore() {
           {overloaded.length > 0 && <span className="text-xs text-red-600">✗ {overloaded.length} surcharge</span>}
         </div>
       </div>
-    </motion.div>
+    </div>
   );
 }
 
-const CustomTooltip = ({ active, payload, label }) => {
-  if (!active || !payload?.length) return null;
-  const { load, capacity, utilization } = payload[0]?.payload || {};
-  return (
-    <div className="bg-white rounded-xl shadow-card-hover border border-gray-100 p-3 text-sm">
-      <p className="font-semibold text-gray-800 mb-1">Atelier {label}</p>
-      <p className="text-gray-500">Charge : <span className="font-bold text-elm">{load}h</span></p>
-      <p className="text-gray-500">Capacité : <span className="font-bold text-gray-700">{capacity}h</span></p>
-      <p className="text-gray-500">Utilisation : <span className={`font-bold ${utilization > 100 ? 'text-red-500' : utilization > 80 ? 'text-amber-500' : 'text-green-500'}`}>{utilization}%</span></p>
-    </div>
-  );
-};
-
 function CapacityChart() {
   const { utilization } = useApp();
+  const maxH = Math.max(1, ...utilization.map(u => Math.max(u.load, u.capacity)));
+  const refCapacity = utilization[0]?.capacity ?? 0;
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 16 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 0.1 }}
-      className="bg-white rounded-2xl shadow-card border border-gray-100 p-6"
-    >
+    <div className="bg-white rounded-2xl shadow-card border border-gray-100 p-6">
       <div className="flex items-center gap-2 mb-5">
         <TrendingUp className="w-5 h-5 text-primary" />
         <h3 className="font-bold text-gray-800">Charge vs Capacité par Atelier</h3>
       </div>
-      <ResponsiveContainer width="100%" height={260}>
-        <BarChart data={utilization} barGap={4} barCategoryGap="28%">
-          <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" vertical={false} />
-          <XAxis dataKey="atelier" tick={{ fontSize: 12, fill: '#6b7280' }} axisLine={false} tickLine={false} />
-          <YAxis tick={{ fontSize: 11, fill: '#9ca3af' }} axisLine={false} tickLine={false} unit="h" />
-          <Tooltip content={<CustomTooltip />} />
-          <ReferenceLine y={utilization[0]?.capacity} stroke="#FBB829" strokeDasharray="6 3" label={{ value: 'Capacité', position: 'right', fontSize: 11, fill: '#FBB829' }} />
-          <Bar dataKey="load" name="Charge" radius={[6, 6, 0, 0]}>
-            {utilization.map((entry) => (
-              <Cell
-                key={entry.atelier}
-                fill={entry.utilization > 100 ? '#ef4444' : entry.utilization > 80 ? '#FBB829' : '#3CC2B1'}
-              />
-            ))}
-          </Bar>
-        </BarChart>
-      </ResponsiveContainer>
+      <div className="relative" style={{ height: 260 }}>
+        <div
+          className="absolute left-0 right-0 border-t border-dashed border-accent"
+          style={{ bottom: `${(refCapacity / maxH) * 100}%` }}
+          title={`Capacité ${refCapacity}h`}
+        />
+        <div className="flex items-end justify-around h-full gap-2 px-2">
+          {utilization.map((u) => {
+            const color = u.utilization > 100 ? '#ef4444' : u.utilization > 80 ? '#FBB829' : '#3CC2B1';
+            const h = Math.max(2, (u.load / maxH) * 100);
+            return (
+              <div key={u.atelier} className="flex-1 flex flex-col items-center h-full justify-end group">
+                <div
+                  className="w-full rounded-t-md transition-all relative"
+                  style={{ height: `${h}%`, backgroundColor: color }}
+                  title={`${u.name}: ${u.load}h / ${u.capacity}h (${u.utilization}%)`}
+                >
+                  <span className="absolute -top-5 left-1/2 -translate-x-1/2 text-[10px] font-semibold text-gray-600 opacity-0 group-hover:opacity-100">
+                    {u.load}h
+                  </span>
+                </div>
+                <span className="text-xs text-gray-500 mt-1">{u.atelier}</span>
+              </div>
+            );
+          })}
+        </div>
+      </div>
       <div className="flex gap-4 mt-2 justify-center">
         <span className="flex items-center gap-1.5 text-xs text-gray-500"><span className="w-3 h-3 rounded bg-primary inline-block" /> Nominal</span>
         <span className="flex items-center gap-1.5 text-xs text-gray-500"><span className="w-3 h-3 rounded bg-accent inline-block" /> Proche saturation</span>
         <span className="flex items-center gap-1.5 text-xs text-gray-500"><span className="w-3 h-3 rounded bg-red-400 inline-block" /> Surcharge</span>
       </div>
-    </motion.div>
+    </div>
   );
 }
 
@@ -133,25 +119,17 @@ function HeatmapGrid() {
   };
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 16 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 0.2 }}
-      className="bg-white rounded-2xl shadow-card border border-gray-100 p-6"
-    >
+    <div className="bg-white rounded-2xl shadow-card border border-gray-100 p-6">
       <div className="flex items-center gap-2 mb-5">
         <Layers className="w-5 h-5 text-primary" />
         <h3 className="font-bold text-gray-800">Heatmap des Ateliers</h3>
       </div>
       <div className="grid grid-cols-5 gap-3">
-        {utilization.map((u, i) => {
+        {utilization.map((u) => {
           const { bg, text, glow } = getCellStyle(u.utilization);
           return (
-            <motion.div
+            <div
               key={u.atelier}
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.05 * i }}
               className={`relative rounded-xl border-2 p-4 text-center transition-all cursor-default ${bg} ${glow ? 'animate-pulse-slow shadow-glow-accent' : ''}`}
               title={u.name}
             >
@@ -161,20 +139,23 @@ function HeatmapGrid() {
               {u.utilization > 100 && (
                 <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full" />
               )}
-            </motion.div>
+            </div>
           );
         })}
       </div>
-    </motion.div>
+    </div>
   );
 }
 
 function GanttChart() {
   const { products } = useApp();
   const [hoveredProduct, setHoveredProduct] = useState(null);
-  const ganttData = generateGanttData(products);
+  const ganttData = useMemo(() => generateGanttData(products), [products]);
   const weeks = [1, 2, 3, 4];
-  const ateliers = [...new Set(ganttData.map(r => r.atelier))].sort();
+  const ateliers = useMemo(
+    () => [...new Set(ganttData.map(r => r.atelier))].sort(),
+    [ganttData]
+  );
 
   const getProductColor = (productId) => {
     const p = products.find(p => p.id === productId);
@@ -186,12 +167,7 @@ function GanttChart() {
   };
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 16 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 0.3 }}
-      className="bg-white rounded-2xl shadow-card border border-gray-100 p-6"
-    >
+    <div className="bg-white rounded-2xl shadow-card border border-gray-100 p-6">
       <div className="flex items-center gap-2 mb-5">
         <Eye className="w-5 h-5 text-primary" />
         <h3 className="font-bold text-gray-800">Planning Gantt — Gammes par Semaine</h3>
@@ -224,11 +200,11 @@ function GanttChart() {
                     <td key={week} className="px-1 py-1.5 align-top">
                       <div className="flex flex-col gap-1 min-h-[32px]">
                         {cells.map((cell, i) => (
-                          <motion.div
-                            key={i}
+                          <div
+                            key={`${cell.productId}-${i}`}
                             onMouseEnter={() => setHoveredProduct(cell.productId)}
                             onMouseLeave={() => setHoveredProduct(null)}
-                            className="rounded-md px-2 py-1 text-white text-xs font-medium truncate cursor-default transition-all"
+                            className="rounded-md px-2 py-1 text-white text-xs font-medium truncate cursor-default"
                             style={{
                               backgroundColor: getProductColor(cell.productId),
                               opacity: hoveredProduct !== null && hoveredProduct !== cell.productId ? 0.3 : 1,
@@ -237,7 +213,7 @@ function GanttChart() {
                             title={`${cell.productName} — ${cell.lots} lot(s) — ${cell.duration}h`}
                           >
                             {cell.productName.split(' ')[0]}
-                          </motion.div>
+                          </div>
                         ))}
                       </div>
                     </td>
@@ -254,21 +230,21 @@ function GanttChart() {
         {products.map(p => (
           <span
             key={p.id}
-            className="flex items-center gap-1.5 text-xs px-2 py-1 rounded-full transition-opacity"
+            className="flex items-center gap-1.5 text-xs px-2 py-1 rounded-full"
             style={{
-              backgroundColor: p.color + '20',
-              border: `1px solid ${p.color}40`,
+              backgroundColor: (p.color || '#3CC2B1') + '20',
+              border: `1px solid ${(p.color || '#3CC2B1')}40`,
               opacity: hoveredProduct !== null && hoveredProduct !== p.id ? 0.4 : 1,
             }}
             onMouseEnter={() => setHoveredProduct(p.id)}
             onMouseLeave={() => setHoveredProduct(null)}
           >
-            <span className="w-2 h-2 rounded-full" style={{ backgroundColor: p.color }} />
-            <span className="text-gray-700 font-medium">{p.name.split(' ')[0]}</span>
+            <span className="w-2 h-2 rounded-full" style={{ backgroundColor: p.color || '#3CC2B1' }} />
+            <span className="text-gray-700 font-medium">{(p.name || '').split(' ')[0]}</span>
           </span>
         ))}
       </div>
-    </motion.div>
+    </div>
   );
 }
 
@@ -279,7 +255,7 @@ export default function Dashboard() {
   return (
     <div className="p-8 space-y-6">
       {/* Header */}
-      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex items-start justify-between">
+      <div className="flex items-start justify-between">
         <div>
           <h1 className="text-2xl font-extrabold text-gray-900">Tableau de Bord</h1>
           <p className="text-gray-400 text-sm mt-1">
@@ -290,7 +266,7 @@ export default function Dashboard() {
           <Clock className="w-4 h-4" />
           <span>Mis à jour maintenant</span>
         </div>
-      </motion.div>
+      </div>
 
       {/* Health Score */}
       <HealthScore />
