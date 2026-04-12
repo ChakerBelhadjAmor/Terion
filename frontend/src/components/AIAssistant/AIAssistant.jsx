@@ -102,7 +102,7 @@ export default function AIAssistant() {
           message: userMsg,
           context: buildContext(),
         }),
-        signal: AbortSignal.timeout(8000),
+        signal: AbortSignal.timeout(120000),
       });
 
       if (response.ok) {

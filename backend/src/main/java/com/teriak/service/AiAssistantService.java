@@ -25,7 +25,7 @@ public class AiAssistantService {
     public AiAssistantService(RestTemplateBuilder builder) {
         this.restTemplate = builder
                 .setConnectTimeout(Duration.ofSeconds(5))
-                .setReadTimeout(Duration.ofSeconds(60))
+                .setReadTimeout(Duration.ofSeconds(120))
                 .build();
     }
 

@@ -4,10 +4,10 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine, Cell,
 } from 'recharts';
 import {
-  CheckCircle2, AlertTriangle, XCircle, Clock, TrendingUp, Layers, Eye
+  CheckCircle2, AlertTriangle, XCircle, Clock, TrendingUp, Layers,
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
-import { ATELIER_NAMES, generateGanttData } from '../data/mockData';
+import GanttChart from '../components/GanttChart/GanttChart';
 
 // --- Sub-components ---
 
@@ -164,109 +164,6 @@ function HeatmapGrid() {
             </motion.div>
           );
         })}
-      </div>
-    </motion.div>
-  );
-}
-
-function GanttChart() {
-  const { products } = useApp();
-  const [hoveredProduct, setHoveredProduct] = useState(null);
-  const ganttData = generateGanttData(products);
-  const weeks = [1, 2, 3, 4];
-  const ateliers = [...new Set(ganttData.map(r => r.atelier))].sort();
-
-  const getProductColor = (productId) => {
-    const p = products.find(p => p.id === productId);
-    return p?.color || '#3CC2B1';
-  };
-
-  const getCellData = (atelier, week) => {
-    return ganttData.filter(r => r.atelier === atelier && r.week === week);
-  };
-
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 16 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 0.3 }}
-      className="bg-white rounded-2xl shadow-card border border-gray-100 p-6"
-    >
-      <div className="flex items-center gap-2 mb-5">
-        <Eye className="w-5 h-5 text-primary" />
-        <h3 className="font-bold text-gray-800">Planning Gantt — Gammes par Semaine</h3>
-        <span className="text-xs text-gray-400 ml-auto">Survolez pour voir la gamme complète</span>
-      </div>
-
-      <div className="overflow-x-auto">
-        <table className="w-full text-xs">
-          <thead>
-            <tr>
-              <th className="text-left py-2 pr-4 text-gray-500 font-medium w-8">Atelier</th>
-              {weeks.map(w => (
-                <th key={w} className="text-center py-2 px-2 text-gray-500 font-medium">
-                  Semaine {w}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {ateliers.map(atelier => (
-              <tr key={atelier} className="border-t border-gray-50">
-                <td className="pr-4 py-2">
-                  <div className="w-7 h-7 rounded-lg bg-elm/10 flex items-center justify-center font-bold text-elm text-sm">
-                    {atelier}
-                  </div>
-                </td>
-                {weeks.map(week => {
-                  const cells = getCellData(atelier, week);
-                  return (
-                    <td key={week} className="px-1 py-1.5 align-top">
-                      <div className="flex flex-col gap-1 min-h-[32px]">
-                        {cells.map((cell, i) => (
-                          <motion.div
-                            key={i}
-                            onMouseEnter={() => setHoveredProduct(cell.productId)}
-                            onMouseLeave={() => setHoveredProduct(null)}
-                            className="rounded-md px-2 py-1 text-white text-xs font-medium truncate cursor-default transition-all"
-                            style={{
-                              backgroundColor: getProductColor(cell.productId),
-                              opacity: hoveredProduct !== null && hoveredProduct !== cell.productId ? 0.3 : 1,
-                              boxShadow: hoveredProduct === cell.productId ? `0 0 0 2px white, 0 0 0 4px ${getProductColor(cell.productId)}` : 'none',
-                            }}
-                            title={`${cell.productName} — ${cell.lots} lot(s) — ${cell.duration}h`}
-                          >
-                            {cell.productName.split(' ')[0]}
-                          </motion.div>
-                        ))}
-                      </div>
-                    </td>
-                  );
-                })}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-      {/* Legend */}
-      <div className="mt-4 flex flex-wrap gap-2">
-        {products.map(p => (
-          <span
-            key={p.id}
-            className="flex items-center gap-1.5 text-xs px-2 py-1 rounded-full transition-opacity"
-            style={{
-              backgroundColor: p.color + '20',
-              border: `1px solid ${p.color}40`,
-              opacity: hoveredProduct !== null && hoveredProduct !== p.id ? 0.4 : 1,
-            }}
-            onMouseEnter={() => setHoveredProduct(p.id)}
-            onMouseLeave={() => setHoveredProduct(null)}
-          >
-            <span className="w-2 h-2 rounded-full" style={{ backgroundColor: p.color }} />
-            <span className="text-gray-700 font-medium">{p.name.split(' ')[0]}</span>
-          </span>
-        ))}
       </div>
     </motion.div>
   );
