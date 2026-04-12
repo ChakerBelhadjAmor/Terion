@@ -29,10 +29,10 @@ export default {
         '2xl': '16px',
       },
       boxShadow: {
-        'card': '0 2px 16px 0 rgba(27,104,98,0.08)',
-        'card-hover': '0 8px 32px 0 rgba(27,104,98,0.16)',
-        'glow-primary': '0 0 20px rgba(60,194,177,0.3)',
-        'glow-accent': '0 0 20px rgba(251,184,41,0.4)',
+        'card': '0 1px 3px rgba(0,0,0,0.04), 0 4px 16px rgba(27,104,98,0.06)',
+        'card-hover': '0 4px 12px rgba(0,0,0,0.06), 0 8px 32px rgba(27,104,98,0.12)',
+        'glow-primary': '0 0 24px rgba(60,194,177,0.25)',
+        'glow-accent': '0 0 24px rgba(251,184,41,0.35)',
       },
       fontFamily: {
         sans: ['Inter', 'system-ui', 'sans-serif'],

@@ -159,18 +159,23 @@ export default function AIAssistant() {
   return (
     <>
       {/* Floating button */}
-      <motion.button
-        className="fixed bottom-6 right-6 z-50 w-14 h-14 bg-elm rounded-2xl shadow-xl flex items-center justify-center text-white hover:bg-elm-light transition-colors"
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
-        onClick={handleOpen}
-        title="Assistant IA"
-      >
-        <MessageCircle className="w-6 h-6" />
-        {pdpLoaded && !open && (
-          <span className="absolute top-0 right-0 w-3 h-3 bg-accent rounded-full border-2 border-white animate-pulse" />
-        )}
-      </motion.button>
+      {!open && (
+        <motion.button
+          initial={{ scale: 0, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          exit={{ scale: 0, opacity: 0 }}
+          className="fixed bottom-6 right-6 z-50 w-14 h-14 bg-gradient-to-br from-elm to-elm-dark rounded-2xl shadow-xl flex items-center justify-center text-white hover:shadow-2xl transition-shadow"
+          whileHover={{ scale: 1.05, y: -2 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={handleOpen}
+          title="Assistant IA"
+        >
+          <MessageCircle className="w-6 h-6" />
+          {pdpLoaded && (
+            <span className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-accent rounded-full border-2 border-white animate-pulse" />
+          )}
+        </motion.button>
+      )}
 
       {/* Panel */}
       <AnimatePresence>
@@ -184,19 +189,19 @@ export default function AIAssistant() {
             style={{ maxHeight: '540px' }}
           >
             {/* Header */}
-            <div className="bg-elm px-4 py-3 flex items-center gap-3">
-              <div className="w-8 h-8 rounded-xl bg-primary flex items-center justify-center">
-                <Sparkles className="w-4 h-4 text-white" />
+            <div className="bg-gradient-to-r from-elm to-elm-dark px-4 py-3 flex items-center gap-3">
+              <div className="w-8 h-8 rounded-xl bg-primary/20 border border-primary/30 flex items-center justify-center">
+                <Sparkles className="w-4 h-4 text-primary" />
               </div>
               <div className="flex-1">
                 <p className="text-white font-semibold text-sm">Assistant Terion</p>
-                <p className="text-white/50 text-xs">Alimenté par Llama 3 · Ollama</p>
+                <p className="text-white/40 text-[10px]">Llama 3 · Ollama</p>
               </div>
               <button
                 onClick={() => setOpen(false)}
-                className="text-white/50 hover:text-white transition-colors"
+                className="w-7 h-7 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center text-white/60 hover:text-white transition-all"
               >
-                <X className="w-5 h-5" />
+                <X className="w-4 h-4" />
               </button>
             </div>
 

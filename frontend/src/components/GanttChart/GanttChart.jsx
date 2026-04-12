@@ -2,12 +2,12 @@ import { useCallback, useMemo, useRef, useState } from 'react';
 import { Eye, Calendar, Clock, Hash, Cpu, Info, Download } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { ATELIER_NAMES } from '../../data/mockData';
+import { schedule as runScheduler } from '../../utils/scheduler';
 
 const PX_PER_HOUR = 6;
 const ROW_HEIGHT = 46;
 const HEADER_HEIGHT = 56;
 const LABEL_WIDTH = 180;
-const SETUP_RATIO = 0;
 const HOURS_PER_WORKDAY = 16;
 
 const COLORS = {
@@ -47,42 +47,13 @@ function formatDuration(hours) {
   return `${h}h${String(m).padStart(2, '0')}`;
 }
 
-function buildSchedule(products) {
-  const cursors = {};
-  const tasks = [];
-  const ateliersUsed = new Set();
-  let jobCounter = 1;
-
-  for (const product of products) {
-    if (!Array.isArray(product.gamme)) continue;
-    for (const atelier of product.gamme) {
-      const pt = product.processingTimes?.[atelier] || 0;
-      if (pt <= 0) continue;
-      const lots = Math.max(1, product.lots || 1);
-      const rawDuration = pt * lots;
-      const start = cursors[atelier] || 0;
-      const end = start + rawDuration;
-      tasks.push({
-        id: `J${String(jobCounter++).padStart(4, '0')}`,
-        atelier,
-        productId: product.id,
-        productName: product.name,
-        color: product.color || '#3CC2B1',
-        startHour: start,
-        endHour: end,
-        duration: rawDuration,
-        setupDuration: rawDuration * SETUP_RATIO,
-        productionDuration: rawDuration * (1 - SETUP_RATIO),
-        lots,
-      });
-      cursors[atelier] = end;
-      ateliersUsed.add(atelier);
-    }
-  }
-
-  const ateliers = [...ateliersUsed].sort();
-  const spanHours = Math.max(HOURS_PER_WORKDAY * 5, ...Object.values(cursors), 0);
-  return { tasks, ateliers, spanHours };
+function buildSchedule(products, params, atelierParams) {
+  const result = runScheduler(products, {
+    weeks: params?.weeks || 4,
+    atelierParams: atelierParams || {},
+  });
+  const spanHours = Math.max(HOURS_PER_WORKDAY * 5, result.spanHours);
+  return { tasks: result.tasks, ateliers: result.ateliers, spanHours };
 }
 
 function Tooltip({ task, baseDate, x, y }) {
@@ -117,20 +88,38 @@ function Tooltip({ task, baseDate, x, y }) {
         </div>
         <div className="flex items-center gap-2">
           <Clock className="w-3 h-3 text-gray-400" />
-          <span>Durée : <strong className="text-gray-800">{formatDuration(task.duration)}</strong> ({task.lots} lot{task.lots > 1 ? 's' : ''})</span>
+          <span>Durée nominale : <strong className="text-gray-800">{formatDuration(task.duration)}</strong></span>
         </div>
+        {task.actualDuration && task.actualDuration !== task.duration && (
+          <div className="flex items-center gap-2">
+            <Clock className="w-3 h-3 text-gray-400" />
+            <span>Durée réelle : <strong className="text-gray-800">{formatDuration(task.actualDuration)}</strong></span>
+          </div>
+        )}
+        {task.totalSteps > 0 && (
+          <div className="flex items-center gap-2">
+            <Info className="w-3 h-3 text-gray-400" />
+            <span>Étape : <strong className="text-gray-800">{task.stepIndex + 1}/{task.totalSteps}</strong> · Lot {task.lotIndex + 1}</span>
+          </div>
+        )}
+        {task.segCount > 1 && (
+          <div className="flex items-center gap-2">
+            <Info className="w-3 h-3 text-amber-400" />
+            <span className="text-amber-700">Segment {task.segIndex + 1}/{task.segCount} — pause entre postes</span>
+          </div>
+        )}
       </div>
     </div>
   );
 }
 
 export default function GanttChart() {
-  const { products } = useApp();
+  const { products, params, atelierParams } = useApp();
   const [hovered, setHovered] = useState(null);
   const [cursor, setCursor] = useState({ x: 0, y: 0 });
   const scrollRef = useRef(null);
 
-  const schedule = useMemo(() => buildSchedule(products), [products]);
+  const schedule = useMemo(() => buildSchedule(products, params, atelierParams), [products, params, atelierParams]);
   const baseDate = useMemo(() => getBaseDate(), []);
 
   const totalHours = Math.ceil(schedule.spanHours / 24) * 24;
@@ -160,8 +149,8 @@ export default function GanttChart() {
     const BOM = '\uFEFF';
     const sep = ';';
     const header = [
-      'Ordre', 'Produit', 'Atelier', 'Nom Atelier',
-      'Début', 'Fin', 'Durée (h)', 'Lots',
+      'Ordre', 'Produit', 'Lot', 'Étape', 'Atelier', 'Nom Atelier',
+      'Début', 'Fin', 'Durée nominale (h)', 'Durée réelle (h)',
     ].join(sep);
 
     const rows = schedule.tasks.map(t => {
@@ -170,12 +159,14 @@ export default function GanttChart() {
       return [
         t.id,
         `"${t.productName}"`,
+        t.lotIndex + 1,
+        `${t.stepIndex + 1}/${t.totalSteps}`,
         t.atelier,
         `"${ATELIER_NAMES[t.atelier]}"`,
         formatDateTime(start),
         formatDateTime(end),
         t.duration,
-        t.lots,
+        Math.round((t.actualDuration || t.duration) * 100) / 100,
       ].join(sep);
     });
 
@@ -291,26 +282,33 @@ export default function GanttChart() {
                   .map((t) => {
                     const left = t.startHour * PX_PER_HOUR;
                     const totalW = (t.endHour - t.startHour) * PX_PER_HOUR;
-                    const isHovered = hovered?.id === t.id;
+                    const isProductHovered = hovered && hovered.productId === t.productId && hovered.lotIndex === t.lotIndex;
+                    const isExactHovered = isProductHovered && hovered.segId === t.segId;
+                    const isFirst = !t.segIndex || t.segIndex === 0;
+                    const dimmed = hovered && !isProductHovered;
                     return (
                       <div
-                        key={t.id}
+                        key={t.segId || t.id}
                         onMouseEnter={(e) => handleTaskEnter(t, e)}
                         onMouseMove={handleTaskMove}
                         onMouseLeave={handleTaskLeave}
-                        className="absolute flex items-center rounded-md overflow-hidden shadow-sm cursor-pointer px-2 text-white text-[11px] font-semibold truncate"
+                        className="absolute flex items-center overflow-hidden shadow-sm cursor-pointer px-1 text-white text-[11px] font-semibold truncate"
                         style={{
                           left,
                           width: Math.max(totalW, 2),
                           top: 6,
                           height: ROW_HEIGHT - 14,
                           backgroundColor: t.color,
-                          outline: isHovered ? '2px solid #1B6862' : 'none',
+                          opacity: dimmed ? 0.25 : 1,
+                          borderRadius: isFirst ? '6px' : '2px 6px 6px 2px',
+                          borderLeft: !isFirst ? `2px dashed rgba(255,255,255,0.5)` : undefined,
+                          outline: isProductHovered ? `2px solid ${isExactHovered ? '#1B6862' : '#1B686280'}` : 'none',
                           outlineOffset: 1,
-                          zIndex: isHovered ? 5 : 1,
+                          zIndex: isProductHovered ? 5 : 1,
+                          transition: 'opacity 0.15s',
                         }}
                       >
-                        {t.productName}
+                        {isFirst ? t.productName : ''}
                       </div>
                     );
                   })}
@@ -322,7 +320,7 @@ export default function GanttChart() {
 
       {/* Summary */}
       <div className="mt-4 flex items-center gap-4 text-xs text-gray-500">
-        <span><strong className="text-gray-700">{schedule.tasks.length}</strong> tâches planifiées</span>
+        <span><strong className="text-gray-700">{new Set(schedule.tasks.map(t => `${t.id}-${t.stepIndex}`)).size}</strong> tâches planifiées</span>
         <span>·</span>
         <span><strong className="text-gray-700">{schedule.ateliers.length}</strong> machines actives</span>
         <span>·</span>

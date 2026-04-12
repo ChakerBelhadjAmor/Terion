@@ -18,10 +18,11 @@ function Toggle({ checked, onChange }) {
   return (
     <button
       onClick={() => onChange(!checked)}
-      className={`relative w-11 h-6 rounded-full transition-colors ${checked ? 'bg-primary' : 'bg-gray-200'}`}
+      className={`relative inline-flex items-center w-11 h-6 rounded-full transition-colors shrink-0 ${checked ? 'bg-primary' : 'bg-gray-200'}`}
     >
       <span
-        className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow transition-transform ${checked ? 'translate-x-6' : 'translate-x-1'}`}
+        className="absolute w-4 h-4 bg-white rounded-full shadow transition-transform"
+        style={{ transform: checked ? 'translateX(22px)' : 'translateX(4px)' }}
       />
     </button>
   );

@@ -66,6 +66,10 @@ function AtelierRow({ atelier }) {
   const ap = atelierParams[atelier];
   const u = utilization.find(x => x.atelier === atelier);
 
+  const totalDailyHours = ap.shiftsPerDay * ap.hoursPerShift;
+  const maxHoursPerShift = Math.floor(24 / ap.shiftsPerDay);
+  const maxShiftsPerDay = Math.floor(24 / ap.hoursPerShift);
+
   const color = u?.utilization > 100 ? 'text-red-500' : u?.utilization > 80 ? 'text-amber-500' : 'text-green-600';
   const barColor = u?.utilization > 100 ? '#ef4444' : u?.utilization > 80 ? '#FBB829' : '#3CC2B1';
 
@@ -82,6 +86,9 @@ function AtelierRow({ atelier }) {
       {/* Name */}
       <div className="w-44 shrink-0">
         <p className="text-sm font-medium text-gray-700 truncate">{ATELIER_NAMES[atelier]}</p>
+        {totalDailyHours > 24 && (
+          <p className="text-[10px] text-red-500 font-medium">Postes × H/poste &gt; 24h !</p>
+        )}
       </div>
 
       {/* Jours/semaine */}
@@ -94,21 +101,21 @@ function AtelierRow({ atelier }) {
       {/* Postes/jour */}
       <div className="flex flex-col items-center gap-0.5 shrink-0">
         <span className="text-xs text-gray-400">Postes/j</span>
-        <Stepper value={ap.shiftsPerDay} min={1} max={3} step={1} unit=""
+        <Stepper value={ap.shiftsPerDay} min={1} max={maxShiftsPerDay} step={1} unit=""
           onChange={v => updateAtelierParam(atelier, 'shiftsPerDay', v)} />
       </div>
 
       {/* H/poste */}
       <div className="flex flex-col items-center gap-0.5 shrink-0">
         <span className="text-xs text-gray-400">H/poste</span>
-        <Stepper value={ap.hoursPerShift} min={6} max={12} step={1} unit="h"
+        <Stepper value={ap.hoursPerShift} min={1} max={maxHoursPerShift} step={1} unit="h"
           onChange={v => updateAtelierParam(atelier, 'hoursPerShift', v)} />
       </div>
 
       {/* Rendement */}
       <div className="flex flex-col items-center gap-0.5 shrink-0">
         <span className="text-xs text-gray-400">Rendement</span>
-        <Stepper value={ap.efficiency} min={50} max={100} step={5} unit="%"
+        <Stepper value={ap.efficiency} min={50} max={100} step={1} unit="%"
           onChange={v => updateAtelierParam(atelier, 'efficiency', v)} />
       </div>
 
@@ -170,21 +177,23 @@ export default function Simulation() {
       {/* Header */}
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mb-8">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3 mb-1">
-            <Sliders className="w-6 h-6 text-primary" />
-            <h1 className="text-2xl font-extrabold text-gray-900">Simulation de Capacité</h1>
+          <div>
+            <div className="flex items-center gap-3 mb-1">
+              <Sliders className="w-6 h-6 text-primary" />
+              <h1 className="text-2xl font-extrabold text-gray-900 tracking-tight">Simulation de Capacité</h1>
+            </div>
+            <p className="text-gray-400 text-sm">
+              Ajustez les paramètres globaux et ceux de chaque atelier indépendamment.
+            </p>
           </div>
           <button
             onClick={resetAtelierParams}
-            className="flex items-center gap-2 px-3 py-2 rounded-xl border border-gray-200 text-gray-500 hover:text-gray-700 hover:border-gray-300 text-sm transition-colors"
+            className="flex items-center gap-2 px-3 py-2 rounded-xl border border-gray-200 text-gray-500 hover:text-gray-700 hover:border-gray-300 hover:bg-gray-50 text-sm transition-all active:scale-[0.97]"
           >
             <RotateCcw className="w-4 h-4" />
-            Réinitialiser les ateliers
+            Réinitialiser
           </button>
         </div>
-        <p className="text-gray-400 text-sm">
-          Ajustez les paramètres globaux et ceux de chaque atelier indépendamment.
-        </p>
       </motion.div>
 
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
