@@ -1,8 +1,8 @@
 import { useCallback, useState } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Upload, FileSpreadsheet, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
-import { parseExcelFile } from '../../utils/excelParser';
+import { Upload, FileSpreadsheet, CheckCircle, AlertCircle, Loader2, Download } from 'lucide-react';
+import { parseExcelFile, downloadTemplate } from '../../utils/excelParser';
 import { useApp } from '../../context/AppContext';
 
 export default function DropZone({ onSuccess }) {
@@ -123,6 +123,14 @@ export default function DropZone({ onSuccess }) {
                 </span>
               ))}
             </div>
+
+            <button
+              onClick={(e) => { e.stopPropagation(); downloadTemplate(); }}
+              className="mt-3 flex items-center gap-2 px-4 py-2 rounded-xl border border-primary/30 bg-primary/5 hover:bg-primary/10 text-primary text-sm font-medium transition-colors"
+            >
+              <Download className="w-4 h-4" />
+              Télécharger le modèle Excel
+            </button>
           </motion.div>
         )}
       </AnimatePresence>

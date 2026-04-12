@@ -4,11 +4,7 @@ import { ArrowRight, Sparkles, BarChart3, Cpu } from 'lucide-react';
 import DropZone from '../components/DropZone/DropZone';
 import { useApp } from '../context/AppContext';
 
-const features = [
-  { icon: BarChart3, label: 'Visualisation capacité/charge en temps réel' },
-  { icon: Cpu, label: 'Optimisation automatique via Timefold' },
-  { icon: Sparkles, label: 'Assistant IA intelligent (Llama 3 offline)' },
-];
+
 
 export default function LandingPage() {
   const navigate = useNavigate();
@@ -75,22 +71,7 @@ export default function LandingPage() {
         </button>
       </motion.div>
 
-      {/* Features */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.6 }}
-        className="mt-14 flex gap-6 flex-wrap justify-center"
-      >
-        {features.map(({ icon: Icon, label }) => (
-          <div key={label} className="flex items-center gap-2 text-sm text-gray-500">
-            <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
-              <Icon className="w-4 h-4 text-primary" />
-            </div>
-            {label}
-          </div>
-        ))}
-      </motion.div>
+     
 
       {/* Company logo footer */}
       <motion.div

@@ -2,6 +2,11 @@
   "name": "terion",
   "version": "1.0.0",
   "description": "Terion — Plan de Charge · Laboratoires Teriak",
+  "author": {
+    "name": "Laboratoires Teriak",
+    "email": "contact@teriak.com.tn"
+  },
+  "homepage": "https://www.teriak.com.tn",
   "main": "main.js",
   "scripts": {
     "start": "electron .",
@@ -18,20 +23,28 @@
       "output": "dist"
     },
     "linux": {
-      "target": ["AppImage", "deb"],
+      "target": [
+        "AppImage",
+        "deb"
+      ],
       "icon": "build/icon.png",
       "category": "Office"
     },
     "win": {
-      "target": ["nsis"],
+      "target": [
+        "nsis"
+      ],
       "icon": "build/icon.png"
     },
     "mac": {
-      "target": ["dmg"],
+      "target": [
+        "dmg"
+      ],
       "icon": "build/icon.png"
     }
   },
   "devDependencies": {
+    "@electron/fuses": "^2.1.1",
     "electron": "^33.0.0",
     "electron-builder": "^25.0.0"
   }
