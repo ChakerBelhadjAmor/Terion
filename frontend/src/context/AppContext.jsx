@@ -23,7 +23,7 @@ export function AppProvider({ children }) {
   const loadDemoData = () => {
     setProducts(PRODUCTS);
     setPdpLoaded(true);
-    setFileName('PDP_Teriak_2024_Q2.xlsx');
+    setFileName('PDP_Terion_2024_Q2.xlsx');
   };
 
   const resetPdp = () => {

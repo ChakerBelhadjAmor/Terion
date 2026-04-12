@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Activity, ArrowRight, Sparkles, BarChart3, Cpu } from 'lucide-react';
+import { ArrowRight, Sparkles, BarChart3, Cpu } from 'lucide-react';
 import DropZone from '../components/DropZone/DropZone';
 import { useApp } from '../context/AppContext';
 
@@ -30,14 +30,8 @@ export default function LandingPage() {
         transition={{ duration: 0.6 }}
         className="text-center mb-12"
       >
-        <div className="flex items-center justify-center gap-3 mb-4">
-          <div className="w-14 h-14 rounded-2xl bg-elm flex items-center justify-center shadow-lg">
-            <Activity className="w-7 h-7 text-primary" />
-          </div>
-          <div className="text-left">
-            <h1 className="text-3xl font-bold text-elm">Teriak</h1>
-            <p className="text-primary font-medium">Plan de Charge</p>
-          </div>
+        <div className="flex flex-col items-center gap-4 mb-4">
+          <img src="/teriak_logo.png" alt="Laboratoires Teriak" className="h-25" />
         </div>
         <h2 className="text-4xl font-extrabold text-gray-900 mt-6 mb-3">
           Pilotez votre production
@@ -96,6 +90,17 @@ export default function LandingPage() {
             {label}
           </div>
         ))}
+      </motion.div>
+
+      {/* Company logo footer */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.8 }}
+        className="mt-12 flex flex-col items-center gap-2"
+      >
+        <p className="text-xs text-gray-400">Un produit</p>
+        <img src="/teriak_logo.png" alt="Laboratoires Teriak" className="h-8 opacity-60" />
       </motion.div>
     </div>
   );

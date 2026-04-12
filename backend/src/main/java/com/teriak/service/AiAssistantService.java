@@ -60,7 +60,7 @@ public class AiAssistantService {
 
     private String buildSystemPrompt(Map<String, Object> context) {
         StringBuilder sb = new StringBuilder();
-        sb.append("Tu es l'assistant IA du logiciel Plan de Charge de Laboratoires Teriak. ");
+        sb.append("Tu es l'assistant IA du logiciel Terion — Plan de Charge de Laboratoires Teriak. ");
         sb.append("Tu analyses la capacité de production des ateliers pharmaceutiques (A à J) ");
         sb.append("et fournis des recommandations d'optimisation.\n\n");
         sb.append("Contexte actuel:\n");

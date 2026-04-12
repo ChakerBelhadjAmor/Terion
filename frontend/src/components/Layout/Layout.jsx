@@ -1,8 +1,15 @@
-import { Outlet } from 'react-router-dom';
+import { Navigate, Outlet } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import AIAssistant from '../AIAssistant/AIAssistant';
+import { useApp } from '../../context/AppContext';
 
 export default function Layout() {
+  const { pdpLoaded } = useApp();
+
+  if (!pdpLoaded) {
+    return <Navigate to="/" replace />;
+  }
+
   return (
     <div className="flex min-h-screen bg-gray-50">
       <Sidebar />

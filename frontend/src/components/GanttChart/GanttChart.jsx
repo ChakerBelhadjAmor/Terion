@@ -1,5 +1,5 @@
-import { useMemo, useRef, useState } from 'react';
-import { Eye, Calendar, Clock, Hash, Cpu, Info } from 'lucide-react';
+import { useCallback, useMemo, useRef, useState } from 'react';
+import { Eye, Calendar, Clock, Hash, Cpu, Info, Download } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { ATELIER_NAMES } from '../../data/mockData';
 
@@ -156,16 +156,58 @@ export default function GanttChart() {
   };
   const handleTaskLeave = () => setHovered(null);
 
+  const exportCSV = useCallback(() => {
+    const BOM = '\uFEFF';
+    const sep = ';';
+    const header = [
+      'Ordre', 'Produit', 'Atelier', 'Nom Atelier',
+      'Début', 'Fin', 'Durée (h)', 'Lots',
+    ].join(sep);
+
+    const rows = schedule.tasks.map(t => {
+      const start = addHours(baseDate, t.startHour);
+      const end = addHours(baseDate, t.endHour);
+      return [
+        t.id,
+        `"${t.productName}"`,
+        t.atelier,
+        `"${ATELIER_NAMES[t.atelier]}"`,
+        formatDateTime(start),
+        formatDateTime(end),
+        t.duration,
+        t.lots,
+      ].join(sep);
+    });
+
+    const csv = BOM + [header, ...rows].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `planning_production_${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }, [schedule, baseDate]);
+
   return (
     <div className="bg-white rounded-2xl shadow-card border border-gray-100 p-6">
       {/* Header */}
       <div className="flex items-center gap-2 mb-4">
         <Eye className="w-5 h-5 text-primary" />
         <h3 className="font-bold text-gray-800">Planning Gantt — Ordonnancement Détaillé</h3>
-        <span className="ml-auto flex items-center gap-1 text-xs text-gray-400">
-          <Info className="w-3 h-3" />
-          Survolez une tâche pour voir les détails
-        </span>
+        <div className="ml-auto flex items-center gap-3">
+          <span className="flex items-center gap-1 text-xs text-gray-400">
+            <Info className="w-3 h-3" />
+            Survolez une tâche pour voir les détails
+          </span>
+          <button
+            onClick={exportCSV}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary text-white hover:bg-primary/90 text-xs font-semibold transition-colors"
+          >
+            <Download className="w-3.5 h-3.5" />
+            Exporter CSV
+          </button>
+        </div>
       </div>
 
       {/* Legend */}

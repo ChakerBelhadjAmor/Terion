@@ -189,7 +189,7 @@ export default function AIAssistant() {
                 <Sparkles className="w-4 h-4 text-white" />
               </div>
               <div className="flex-1">
-                <p className="text-white font-semibold text-sm">Assistant Teriak</p>
+                <p className="text-white font-semibold text-sm">Assistant Terion</p>
                 <p className="text-white/50 text-xs">Alimenté par Llama 3 · Ollama</p>
               </div>
               <button
