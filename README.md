@@ -1,6 +1,8 @@
-# Teriak — Plan de Charge
+# Terion — Plan de Charge · Laboratoires Teriak
 
 A desktop-first production load planning application for **Laboratoires Teriak**. It lets production planners upload a PDP (Plan Directeur de Production) Excel file and instantly visualise the load vs. capacity across all 10 manufacturing workshops, run simulations, and query an AI assistant — all without an internet connection.
+
+**Terion** is packaged as a native desktop app (Electron) that automatically starts the full Docker stack on launch.
 
 ---
 
@@ -56,45 +58,54 @@ The assistant answers questions about capacity, bottlenecks, and optimisation st
 
 ## Technologies
 
-### Frontend
+### 🖥️ Desktop
 | Technology | Role |
 |---|---|
-| **React 18** | UI component framework |
-| **Vite 5** | Dev server and production bundler |
-| **Tailwind CSS 3** | Utility-first styling with custom Teriak theme |
-| **Framer Motion** | Page transitions, animated bar fills, hover effects |
-| **Recharts** | Bar charts and reference lines |
-| **React Router 6** | Client-side routing (Landing, Dashboard, Simulation, Products, Settings) |
-| **react-dropzone** | Drag-and-drop file upload zone |
-| **xlsx (SheetJS)** | Excel parsing in the browser |
-| **lucide-react** | Icon set |
+| ![Electron](https://img.shields.io/badge/Electron_33-47848F?style=flat-square&logo=electron&logoColor=white) **Electron 33** | Native desktop wrapper (Windows / macOS / Linux) |
+| ![electron-builder](https://img.shields.io/badge/electron--builder_25-47848F?style=flat-square&logo=electron&logoColor=white) **electron-builder 25** | Cross-platform installer packaging (AppImage, deb, NSIS, dmg) |
 
-### Backend
+### 🎨 Frontend
 | Technology | Role |
 |---|---|
-| **Spring Boot 3.2** | REST API framework |
-| **Java 21** | Runtime (virtual threads ready) |
-| **Apache POI** | Server-side Excel parsing |
-| **LangChain4j** | LLM integration layer |
-| **Ollama** | Local LLM runtime (no cloud required) |
-| **Llama 3** | The language model served by Ollama |
-| **Timefold (OptaPlanner)** | Constraint solver for lot re-sequencing optimisation |
-| **Lombok** | Boilerplate reduction |
+| ![React](https://img.shields.io/badge/React_18-20232A?style=flat-square&logo=react&logoColor=61DAFB) **React 18** | UI component framework |
+| ![Vite](https://img.shields.io/badge/Vite_5-646CFF?style=flat-square&logo=vite&logoColor=white) **Vite 5** | Dev server and production bundler |
+| ![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS_3-06B6D4?style=flat-square&logo=tailwindcss&logoColor=white) **Tailwind CSS 3** | Utility-first styling with custom Teriak theme |
+| ![Framer Motion](https://img.shields.io/badge/Framer_Motion-0055FF?style=flat-square&logo=framer&logoColor=white) **Framer Motion** | Page transitions, animated bar fills, hover effects |
+| ![Recharts](https://img.shields.io/badge/Recharts-22B5BF?style=flat-square&logo=data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZmlsbD0id2hpdGUiIGQ9Ik00IDIwaDJWOEg0em0zLTZoMnYtNkg3em0zIDNoMlY1aC0yem0zIDNoMlY5aC0yem0zLTZoMnY0aC0yeiIvPjwvc3ZnPg==&logoColor=white) **Recharts** | Bar charts and reference lines |
+| ![React Router](https://img.shields.io/badge/React_Router_6-CA4245?style=flat-square&logo=react-router&logoColor=white) **React Router 6** | Client-side routing (Landing, Dashboard, Simulation, Products, Settings) |
+| ![react-dropzone](https://img.shields.io/badge/react--dropzone-61DAFB?style=flat-square&logo=react&logoColor=black) **react-dropzone** | Drag-and-drop file upload zone |
+| ![SheetJS](https://img.shields.io/badge/xlsx_(SheetJS)-217346?style=flat-square&logo=microsoftexcel&logoColor=white) **xlsx (SheetJS)** | Excel parsing in the browser |
+| ![lucide-react](https://img.shields.io/badge/lucide--react-F56565?style=flat-square&logo=lucide&logoColor=white) **lucide-react** | Icon set |
 
-### Infrastructure
+### ⚙️ Backend
 | Technology | Role |
 |---|---|
-| **Docker** | Container packaging for backend and frontend |
-| **Docker Compose** | Orchestrates Ollama + backend + frontend as one stack |
-| **nginx** | Serves the React build and proxies `/api` calls to the backend |
+| ![Spring Boot](https://img.shields.io/badge/Spring_Boot_3.2-6DB33F?style=flat-square&logo=springboot&logoColor=white) **Spring Boot 3.2** | REST API framework |
+| ![Java](https://img.shields.io/badge/Java_21-ED8B00?style=flat-square&logo=openjdk&logoColor=white) **Java 21** | Runtime (virtual threads ready) |
+| ![Apache POI](https://img.shields.io/badge/Apache_POI-D22128?style=flat-square&logo=apache&logoColor=white) **Apache POI** | Server-side Excel parsing |
+| ![Ollama](https://img.shields.io/badge/Ollama-000000?style=flat-square&logo=ollama&logoColor=white) **Ollama** | Local LLM runtime (no cloud required) |
+| ![Llama 3](https://img.shields.io/badge/Llama_3-7C3AED?style=flat-square&logo=meta&logoColor=white) **Llama 3** | The language model served by Ollama |
+| ![Timefold](https://img.shields.io/badge/Timefold_Solver_1.11-FF6B35?style=flat-square&logoColor=white) **Timefold (OptaPlanner)** | Constraint solver for lot re-sequencing optimisation |
+| ![Lombok](https://img.shields.io/badge/Lombok-BC4520?style=flat-square&logo=java&logoColor=white) **Lombok** | Boilerplate reduction |
+
+### 🏗️ Infrastructure
+| Technology | Role |
+|---|---|
+| ![Docker](https://img.shields.io/badge/Docker-2496ED?style=flat-square&logo=docker&logoColor=white) **Docker** | Container packaging for backend and frontend |
+| ![Docker Compose](https://img.shields.io/badge/Docker_Compose-2496ED?style=flat-square&logo=docker&logoColor=white) **Docker Compose** | Orchestrates Ollama + backend + frontend as one stack |
+| ![nginx](https://img.shields.io/badge/nginx-009639?style=flat-square&logo=nginx&logoColor=white) **nginx** | Serves the React build and proxies `/api` calls to the backend |
 
 ---
 
 ## Project Structure
 
 ```
-teriak_hackathon/
-├── docker-compose.yml          # Full-stack orchestration
+Terion/
+├── docker-compose.yml          # Full-stack orchestration (Ollama + backend + frontend)
+│
+├── desktop/                    # Electron native desktop wrapper
+│   ├── main.js                 # App entry: starts Docker stack, shows splash, loads React UI
+│   └── package.json            # Electron + electron-builder config (AppImage / deb / NSIS / dmg)
 │
 ├── frontend/
 │   ├── Dockerfile              # nginx-based production image
@@ -209,7 +220,29 @@ Utilisation % = (Load / Available Hours) × 100
 
 ## Running the App
 
-### Option A — Frontend only (fastest, no Docker needed)
+### Option A — Desktop app (Electron, recommended for end-users)
+
+**Prerequisites:** Docker and Docker Compose installed. Node.js 18+ for building.
+
+```bash
+cd desktop
+npm install
+npm start        # launches Electron, starts Docker stack automatically
+```
+
+On launch, Terion shows a splash screen while it starts the Docker stack in the background, then loads the React UI inside an Electron window. No browser needed.
+
+To build a distributable installer:
+
+```bash
+npm run dist:linux   # AppImage + .deb
+npm run dist:win     # NSIS installer (.exe)
+npm run dist:mac     # .dmg
+```
+
+---
+
+### Option B — Frontend only (fastest, no Docker needed)
 
 ```bash
 cd frontend
@@ -221,7 +254,7 @@ Open `http://localhost:5173`. The app runs fully with demo data. The AI assistan
 
 ---
 
-### Option B — Full stack with Docker Compose
+### Option C — Full stack with Docker Compose
 
 **Prerequisites:** Docker and Docker Compose installed.
 
@@ -254,7 +287,7 @@ docker-compose down -v
 
 ---
 
-### Option C — Backend only (Spring Boot)
+### Option D — Backend only (Spring Boot)
 
 Requires Java 21 and Maven (or use the included `mvnw` wrapper).
 
