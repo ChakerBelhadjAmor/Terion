@@ -58,13 +58,13 @@ The assistant answers questions about capacity, bottlenecks, and optimisation st
 
 ## Technologies
 
-### 🖥️ Desktop
+###  Desktop
 | Technology | Role |
 |---|---|
 | ![Electron](https://img.shields.io/badge/Electron_33-47848F?style=flat-square&logo=electron&logoColor=white) **Electron 33** | Native desktop wrapper (Windows / macOS / Linux) |
 | ![electron-builder](https://img.shields.io/badge/electron--builder_25-47848F?style=flat-square&logo=electron&logoColor=white) **electron-builder 25** | Cross-platform installer packaging (AppImage, deb, NSIS, dmg) |
 
-### 🎨 Frontend
+###  Frontend
 | Technology | Role |
 |---|---|
 | ![React](https://img.shields.io/badge/React_18-20232A?style=flat-square&logo=react&logoColor=61DAFB) **React 18** | UI component framework |
@@ -77,7 +77,7 @@ The assistant answers questions about capacity, bottlenecks, and optimisation st
 | ![SheetJS](https://img.shields.io/badge/xlsx_(SheetJS)-217346?style=flat-square&logo=microsoftexcel&logoColor=white) **xlsx (SheetJS)** | Excel parsing in the browser |
 | ![lucide-react](https://img.shields.io/badge/lucide--react-F56565?style=flat-square&logo=lucide&logoColor=white) **lucide-react** | Icon set |
 
-### ⚙️ Backend
+###  Backend
 | Technology | Role |
 |---|---|
 | ![Spring Boot](https://img.shields.io/badge/Spring_Boot_3.2-6DB33F?style=flat-square&logo=springboot&logoColor=white) **Spring Boot 3.2** | REST API framework |
@@ -88,7 +88,7 @@ The assistant answers questions about capacity, bottlenecks, and optimisation st
 | ![Timefold](https://img.shields.io/badge/Timefold_Solver_1.11-FF6B35?style=flat-square&logoColor=white) **Timefold (OptaPlanner)** | Constraint solver for lot re-sequencing optimisation |
 | ![Lombok](https://img.shields.io/badge/Lombok-BC4520?style=flat-square&logo=java&logoColor=white) **Lombok** | Boilerplate reduction |
 
-### 🏗️ Infrastructure
+###  Infrastructure
 | Technology | Role |
 |---|---|
 | ![Docker](https://img.shields.io/badge/Docker-2496ED?style=flat-square&logo=docker&logoColor=white) **Docker** | Container packaging for backend and frontend |
